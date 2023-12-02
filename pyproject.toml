@@ -1,0 +1,114 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["logstash_pipeline_parser"]
+
+[project]
+name = "logstash-pipeline-parser"
+version = "0.0.1"
+authors = [
+    { name = "Tomas Koutek", email = "66636b6f6666@gmail.com" },
+]
+description = "Parsing expression grammar and Abstract syntax tree for Logstash pipeline syntax."
+requires-python = ">=3.11.0, <3.12.0"
+keywords = ["logstash", "config", "pipeline", "peg", "ast", "parser"]
+license = { text = "MIT" }
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "pyparsing>=3.1.1,<=4.0.0",
+]
+
+[project.optional-dependencies]
+ruff = ["ruff==0.1.5"]
+
+[project.urls]
+"Documentation" = "https://github.com/TomasKoutek/logstash-pipeline-parser"
+"Source" = "https://github.com/TomasKoutek/logstash-pipeline-parser"
+"Tracker" = "https://github.com/TomasKoutek/logstash-pipeline-parser/issues"
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "venv",
+]
+
+# Same as Black.
+line-length = 200
+indent-width = 4
+
+# Assume Python 3.11
+target-version = "py311"
+
+[tool.ruff.lint]
+# Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
+# Unlike Flake8, Ruff doesn't enable pycodestyle warnings (`W`) or
+# McCabe complexity (`C901`) by default.
+select = ["ALL"]
+ignore = [
+    "D", # Missing docstring
+    "ANN101", # Missing type annotation for `self` in method
+    "TD", # TODO
+    "FIX002", # Line contains TODO, consider resolving the issue
+    "W291", # Trailing whitespace
+    "ERA001", # Found commented-out code
+    "FBT", # Boolean-typed positional argument
+    "PT009", # Use a regular `assert` instead of unittest-style `assertEqual`
+    "COM812", # Trailing comma missing
+    "S104", # Possible binding to all interfaces
+    "SLF001", # Private member accessed: `_matcher`
+
+]
+
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed.
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+# 4. Ignore `E402` (import violations) in all `__init__.py` files, and in select subdirectories.
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["E402"]
+"**/{tests,docs,tools}/*" = ["E402"]
+
+[tool.ruff.format]
+
+exclude = ["*.pyi"]
+
+# Like Black, use double quotes for strings.
+quote-style = "double"
+
+# Like Black, indent with spaces, rather than tabs.
+indent-style = "space"
+
+# Like Black, respect magic trailing commas.
+skip-magic-trailing-comma = false
+
+# Like Black, automatically detect the appropriate line ending.
+line-ending = "auto"
