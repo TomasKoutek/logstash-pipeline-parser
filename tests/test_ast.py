@@ -94,6 +94,16 @@ class ASTTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
         self.assertParseAndCheckList(AST.ip, '"::1"', [IPv6Address("::1")])
         self.assertParseAndCheckList(AST.ip, "'::1'", [IPv6Address("::1")])
 
+    def test_true(self) -> NoReturn:
+        self.assertParseAndCheckList(AST.true, "true", [True])
+
+    def test_false(self) -> NoReturn:
+        self.assertParseAndCheckList(AST.false, "false", [False])
+
+    def test_boolean(self) -> NoReturn:
+        self.assertParseAndCheckList(AST.boolean, "true", [True])
+        self.assertParseAndCheckList(AST.boolean, "false", [False])
+
     def test_plugin_type(self) -> NoReturn:
         self.assertParseAndCheckList(AST.plugin_type, "input", ["input"])
         self.assertParseAndCheckList(AST.plugin_type, "filter", ["filter"])
@@ -341,7 +351,7 @@ class ASTTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
 
                     index => "elk-filebeat-%{[agent][version]}-%{+YYYY}"
                     ssl => true
-                    ssl_certificate_verification => true
+                    ssl_certificate_verification => false # comment
                     keystore => "/etc/logstash/certs/czsrv-jerlogstash01.p12"
                     keystore_password => "${elasticsearch.keystore.password}"
                     truststore => "/etc/logstash/certs/czsrv-jerlogstash01.p12"
@@ -357,7 +367,7 @@ class ASTTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
                [["some_plugin",
                  [["config_mode", "advanced"],
                   ["threads", 8],
-                  ["decorate_events", "true"],
+                  ["decorate_events", True],
                   ["storage_connection", "DefaultEndpointsProtocol..."],
                   ["event_hubs",
                    [42,
@@ -402,15 +412,15 @@ class ASTTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
                  [["hosts",
                    ["https://elasticnode01.local:9200", "https://elasticnode02.local:9200"]],
                   ["index", "elk-filebeat-%{[agent][version]}-%{+YYYY}"],
-                  ["ssl", "true"],
-                  ["ssl_certificate_verification", "true"],
+                  ["ssl", True],
+                  ["ssl_certificate_verification", False],
                   ["keystore", "/etc/logstash/certs/czsrv-jerlogstash01.p12"],
                   ["keystore_password", "${elasticsearch.keystore.password}"],
                   ["truststore", "/etc/logstash/certs/czsrv-jerlogstash01.p12"],
                   ["truststore_password", "${elasticsearch.keystore.password}"],
                   ["user", "logstash"],
                   ["password", "${elasticsearch.logstash.password}"],
-                  ["manage_template", "false"]]]]]])
+                  ["manage_template", False]]]]]])
 
 
 if __name__ == "__main__":

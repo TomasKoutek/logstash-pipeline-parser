@@ -21,13 +21,6 @@ from pyparsing import common as ppc
 # pp.autoname_elements()
 # ------------------------------------------------------------------------
 
-def ipv4_action(instring: str, loc: int, toks: pp.ParseResults) -> IPv4Address:
-    return IPv4Address(toks[0])
-
-
-def ipv6_action(instring: str, loc: int, toks: pp.ParseResults) -> IPv6Address:
-    return IPv6Address(toks[0])
-
 
 class AST:
     array_start = pp.Suppress(pp.Literal("["))
@@ -48,7 +41,7 @@ class AST:
       '127.0.0.1'
     """
 
-    ipv4 = ppc.ipv4_address.set_parse_action(ipv4_action)
+    ipv4 = ppc.ipv4_address.set_parse_action(lambda s, l, t: IPv4Address(t[0]))
 
     r"""
       "2001:0db8:0000:0000:0000:0000:1428:57ab"
@@ -60,7 +53,7 @@ class AST:
       "2001:db8::1428:57ab"
     """
 
-    ipv6 = ppc.ipv6_address.set_parse_action(ipv6_action)
+    ipv6 = ppc.ipv6_address.set_parse_action(lambda s, l, t: IPv6Address(t[0]))
 
     r"""
       ipv4 | ipv6
@@ -71,6 +64,27 @@ class AST:
          pp.Suppress(pp.Literal('"')) + ipv6 + pp.Suppress(pp.Literal('"')) | \
          pp.Suppress(pp.Literal("'")) + ipv6 + pp.Suppress(pp.Literal("'"))
     ip.set_name("IP")
+
+    r"""
+      True
+    """
+
+    true = pp.Keyword("true").set_parse_action(pp.replace_with(True))
+    true.set_name("true")
+
+    r"""
+      False
+    """
+
+    false = pp.Keyword("false").set_parse_action(pp.replace_with(False))
+    false.set_name("false")
+
+    r"""
+      true / false
+    """
+
+    boolean = true | false
+    boolean.set_name("boolean")
 
     r"""
       rule whitespace
@@ -499,14 +513,16 @@ class AST:
         plugin / bareword / string / number / array / hash
       end
     """
+    # in addition: IP support, Boolean
 
-    value << (plugin | bare_word | ip | string | number | array | hashmap)
+    value << (plugin | boolean | bare_word | ip | string | number | array | hashmap)
 
     r"""
       rule rvalue
         string / number / selector / array / method_call / regexp
       end
     """
+    # in addition: IP support
 
     rvalue << (ip | string | number | selector | array | method_call | regexp)
 

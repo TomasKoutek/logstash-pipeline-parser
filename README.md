@@ -75,9 +75,9 @@ Will create simple [Abstract syntax tree](https://en.wikipedia.org/wiki/Abstract
               ["host", ipaddress.IPv4Address("0.0.0.0")]
               ["port", 5044], 
               ["client_inactivity_timeout", 3600], 
-              ["include_codec_tag", "true"],
+              ["include_codec_tag", True],
               ["enrich", ["source_metadata", "ssl_peer_metadata"]]
-              ["ssl", "false"], 
+              ["ssl", False], 
               ["id", "input_exec_beats"]
           ]]
      ]]
