@@ -1,4 +1,6 @@
 import unittest
+from ipaddress import IPv4Address
+from ipaddress import IPv6Address
 from typing import NoReturn
 
 from logstash_pipeline_parser import Pipeline
@@ -13,6 +15,7 @@ class PipelineTestCase(unittest.TestCase):
         self.assertEqual(self.ppl.parse("""
             input {
               syslog {
+                host => "127.0.0.1"
                 port => 123
                 codec => cef
                 qhashmap => {
@@ -20,7 +23,7 @@ class PipelineTestCase(unittest.TestCase):
                 }
               }
             }
-              """), [["input", [["syslog", [["port", 123], ["codec", "cef"], ["qhashmap", [["somekey", "vaur"]]]]]]]])
+              """), [["input", [["syslog", [["host", IPv4Address("127.0.0.1")], ["port", 123], ["codec", "cef"], ["qhashmap", [["somekey", "vaur"]]]]]]]])
 
     def test_matcher(self) -> NoReturn:
         self.assertTrue(Pipeline._matcher(["input", "syslog", "port"], ["input", "syslog", "port"]))
@@ -44,7 +47,7 @@ class PipelineTestCase(unittest.TestCase):
               udp {
                 sub => {
                   port => 456
-                  host => "0.0.0.0"
+                  host => "::1"
                 }
               }
             }
@@ -55,7 +58,7 @@ class PipelineTestCase(unittest.TestCase):
                 somearr => ["abc", "def"]
               }
                 # comment
-              if [se][lec][tor] < 2 {
+              if [se][lec][tor] == "192.168.0.1" {
                 plugin1 {
                   name_1 => 42
                 }
@@ -104,7 +107,7 @@ class PipelineTestCase(unittest.TestCase):
 
         self.assertEqual(
             list(self.ppl.search("input.udp", data)),
-            [("input.udp", [["sub", [["port", 456], ["host", "0.0.0.0"]]]])]
+            [("input.udp", [["sub", [["port", 456], ["host", IPv6Address("::1")]]]])]
         )
 
 

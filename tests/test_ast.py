@@ -1,4 +1,6 @@
 import unittest
+from ipaddress import IPv4Address
+from ipaddress import IPv6Address
 from typing import NoReturn
 
 from pyparsing import pyparsing_test as ppt
@@ -72,6 +74,25 @@ class ASTTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
 
     def test_regexp(self) -> NoReturn:
         self.assertParseAndCheckList(AST.regexp, "/rgx/", ["rgx"])
+
+    def test_ipv4(self) -> NoReturn:
+        self.assertParseAndCheckList(AST.ipv4, "127.0.0.1", [IPv4Address("127.0.0.1")])
+        self.assertParseAndCheckList(AST.ipv4, "0.0.0.0", [IPv4Address("0.0.0.0")])
+        self.assertParseAndCheckList(AST.ipv4, "255.255.255.255", [IPv4Address("255.255.255.255")])
+
+    def test_ipv6(self) -> NoReturn:
+        self.assertParseAndCheckList(AST.ipv6, "::", [IPv6Address("::")])
+        self.assertParseAndCheckList(AST.ipv6, "::1", [IPv6Address("::1")])
+        self.assertParseAndCheckList(AST.ipv6, "::ffff:0.0.0.0", [IPv6Address("::ffff:0.0.0.0")])
+        self.assertParseAndCheckList(AST.ipv6, "64:ff9b:1:ffff:ffff:ffff:ffff:ffff", [IPv6Address("64:ff9b:1:ffff:ffff:ffff:ffff:ffff")])
+        self.assertParseAndCheckList(AST.ipv6, "fc00::", [IPv6Address("fc00::")])
+        self.assertParseAndCheckList(AST.ipv6, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", [IPv6Address("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")])
+
+    def test_ip(self) -> NoReturn:
+        self.assertParseAndCheckList(AST.ip, '"127.0.0.1"', [IPv4Address("127.0.0.1")])
+        self.assertParseAndCheckList(AST.ip, "'127.0.0.1'", [IPv4Address("127.0.0.1")])
+        self.assertParseAndCheckList(AST.ip, '"::1"', [IPv6Address("::1")])
+        self.assertParseAndCheckList(AST.ip, "'::1'", [IPv6Address("::1")])
 
     def test_plugin_type(self) -> NoReturn:
         self.assertParseAndCheckList(AST.plugin_type, "input", ["input"])
@@ -392,5 +413,5 @@ class ASTTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
                   ["manage_template", "false"]]]]]])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

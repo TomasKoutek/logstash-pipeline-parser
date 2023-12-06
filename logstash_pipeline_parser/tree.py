@@ -1,3 +1,5 @@
+from ipaddress import IPv4Address
+from ipaddress import IPv6Address
 from re import compile
 
 import pyparsing as pp
@@ -19,6 +21,13 @@ from pyparsing import common as ppc
 # pp.autoname_elements()
 # ------------------------------------------------------------------------
 
+def ipv4_action(instring: str, loc: int, toks: pp.ParseResults) -> IPv4Address:
+    return IPv4Address(toks[0])
+
+
+def ipv6_action(instring: str, loc: int, toks: pp.ParseResults) -> IPv6Address:
+    return IPv6Address(toks[0])
+
 
 class AST:
     array_start = pp.Suppress(pp.Literal("["))
@@ -33,6 +42,35 @@ class AST:
     rvalue = pp.Forward().set_name("rvalue")
     expression = pp.Forward().set_name("expression")
     branch_or_plugin = pp.Forward().set_name("branch_or_plugin")
+
+    r"""
+      "127.0.0.1"
+      '127.0.0.1'
+    """
+
+    ipv4 = ppc.ipv4_address.set_parse_action(ipv4_action)
+
+    r"""
+      "2001:0db8:0000:0000:0000:0000:1428:57ab"
+      '2001:0db8:0000:0000:0000:0000:1428:57ab'
+      "2001:0db8:0000:0000:0000::1428:57ab
+      "2001:0db8:0:0:0:0:1428:57ab"
+      "2001:0db8:0:0::1428:57ab"
+      "2001:0db8::1428:57ab"
+      "2001:db8::1428:57ab"
+    """
+
+    ipv6 = ppc.ipv6_address.set_parse_action(ipv6_action)
+
+    r"""
+      ipv4 | ipv6
+    """
+
+    ip = pp.Suppress(pp.Literal('"')) + ipv4 + pp.Suppress(pp.Literal('"')) | \
+         pp.Suppress(pp.Literal("'")) + ipv4 + pp.Suppress(pp.Literal("'")) | \
+         pp.Suppress(pp.Literal('"')) + ipv6 + pp.Suppress(pp.Literal('"')) | \
+         pp.Suppress(pp.Literal("'")) + ipv6 + pp.Suppress(pp.Literal("'"))
+    ip.set_name("IP")
 
     r"""
       rule whitespace
@@ -78,6 +116,15 @@ class AST:
     double_quoted_string.set_name("double_quoted_string")
 
     r"""
+      rule string
+        double_quoted_string / single_quoted_string
+      end
+    """
+
+    string = double_quoted_string | single_quoted_string
+    string.set_name("string")
+
+    r"""
       rule compare_operator 
         ("==" / "!=" / "<=" / ">=" / "<" / ">") 
         <LogStash::Config::AST::ComparisonOperator>
@@ -108,6 +155,15 @@ class AST:
     boolean_operator.set_name("boolean_operator")
 
     r"""
+      rule regexp
+        ( '/' ( '\/' / !'/' . )* '/'  <LogStash::Config::AST::RegExp>)
+      end
+    """
+
+    regexp = pp.QuotedString(quote_char="/")
+    regexp.set_name("regexp")
+
+    r"""
       rule regexp_operator
         ("=~" / "!~") <LogStash::Config::AST::RegExpOperator>
       end
@@ -115,6 +171,16 @@ class AST:
 
     regexp_operator = pp.Literal("=~") | pp.Literal("!~")
     regexp_operator.set_name("regexp_operator")
+
+    r"""
+      rule regexp_expression
+        rvalue cs  regexp_operator cs (string / regexp)
+        <LogStash::Config::AST::RegexpExpression>
+      end
+    """
+
+    regexp_expression = rvalue + regexp_operator + pp.Or([string, regexp])
+    regexp_expression.set_name("regexp_expression")
 
     r"""
       rule in_operator
@@ -168,18 +234,9 @@ class AST:
         <LogStash::Config::AST::Selector>
       end
     """
-    # [some][logstash][key] => ['[', 'soe', ']', '[', 'logstash', ']', '[', 'key', ']'] => ['[some][logstash][key]']
+    # [some][logstash][key] => ['[', 'some', ']', '[', 'logstash', ']', '[', 'key', ']'] => ['[some][logstash][key]']
     selector = pp.Combine(pp.OneOrMore(selector_element))
     selector.set_name("selector")
-
-    r"""
-      rule string
-        double_quoted_string / single_quoted_string
-      end
-    """
-
-    string = double_quoted_string | single_quoted_string
-    string.set_name("string")
 
     r"""
       rule bareword
@@ -205,26 +262,9 @@ class AST:
         <LogStash::Config::AST::Number>
       end
     """
+
     number = ppc.number
 
-    r"""
-      rule regexp
-        ( '/' ( '\/' / !'/' . )* '/'  <LogStash::Config::AST::RegExp>)
-      end
-    """
-
-    regexp = pp.QuotedString(quote_char="/")
-    regexp.set_name("regexp")
-
-    r"""
-      rule regexp_expression
-        rvalue cs  regexp_operator cs (string / regexp)
-        <LogStash::Config::AST::RegexpExpression>
-      end
-    """
-
-    regexp_expression = rvalue + regexp_operator + pp.Or([string, regexp])
-    regexp_expression.set_name("regexp_expression")
     r"""
       rule plugin_type
         ("input" / "filter" / "output")
@@ -242,6 +282,7 @@ class AST:
         )
       end
     """
+
     name = pp.Word(pp.alphanums + "_-") | string
     name.set_name("name")
 
@@ -274,6 +315,7 @@ class AST:
         bareword / string / number / array / hash
       end
     """
+
     # DEFINED IN TREETOP BUT NOT USED
 
     """
@@ -458,7 +500,7 @@ class AST:
       end
     """
 
-    value << (plugin | bare_word | string | number | array | hashmap)
+    value << (plugin | bare_word | ip | string | number | array | hashmap)
 
     r"""
       rule rvalue
@@ -466,7 +508,7 @@ class AST:
       end
     """
 
-    rvalue << (string | number | selector | array | method_call | regexp)
+    rvalue << (ip | string | number | selector | array | method_call | regexp)
 
     r"""
       rule branch_or_plugin
