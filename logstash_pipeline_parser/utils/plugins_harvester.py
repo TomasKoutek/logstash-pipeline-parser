@@ -10,27 +10,27 @@ from pathlib import Path
 from typing import NoReturn
 from urllib.error import HTTPError
 
-import aiohttp
 import pandas as pd
 from aiohttp import ClientSession
+from aiohttp import TCPConnector
 
 logger = logging.getLogger(__name__)
 
 
-def _batch(iterable: Generator, size: int = 5) -> Generator[tuple[str, str], None, None]:
+def create_batch(iterable: Generator, size: int = 5) -> Generator[tuple[str, str], None, None]:
     iterator = iter(iterable)
     for _f in iterator:
         yield chain([_f], islice(iterator, size - 1))
 
 
-def _get_all_plugins() -> Generator[tuple[str, str], None, None]:
+def get_all_plugins() -> Generator[tuple[str, str], None, None]:
     all_plugins = pd.DataFrame()
 
     for plugin_type in ["input", "filter", "output"]:
         url = f"https://www.elastic.co/guide/en/logstash/current/{plugin_type}-plugins.html"
         logger.info(url)
 
-        plugins = pd.read_html(url, match="Plugin")[0]
+        plugins = pd.read_html(url, flavor="bs4", match="Plugin")[0]
         plugins.columns = plugins.iloc[0]
         plugins = plugins[1:]
         plugins["type"] = plugin_type
@@ -43,7 +43,7 @@ def _get_all_plugins() -> Generator[tuple[str, str], None, None]:
     return all_plugins[["type", "Plugin"]].to_records(index=False)
 
 
-async def _fetch(_session: ClientSession, plugin: tuple[str, str]) -> str:
+async def fetch(_session: ClientSession, plugin: tuple[str, str]) -> str:
     plugin_type, plugin_name = plugin
     plugin_string = ""
     url = f"https://www.elastic.co/guide/en/logstash/current/plugins-{plugin_type}s-{plugin_name}.html"
@@ -56,6 +56,7 @@ async def _fetch(_session: ClientSession, plugin: tuple[str, str]) -> str:
                 plugin_string = pd.concat(
                     pd.read_html(
                         StringIO(await response.text()),
+                        flavor="bs4",
                         match="Setting"
                     ), axis=0
                 ).reset_index(drop=True).to_string()
@@ -69,9 +70,9 @@ async def _fetch(_session: ClientSession, plugin: tuple[str, str]) -> str:
     return f"#\n# {plugin_type.upper()} - {plugin_name}\n#\n\n{plugin_string}\n\n"
 
 
-async def _fetch_all(_session: ClientSession, plugins: Iterable):
+async def fetch_all(_session: ClientSession, plugins: Iterable):
     return await asyncio.gather(*[
-        asyncio.create_task(_fetch(_session, p)) for p in plugins
+        asyncio.create_task(fetch(_session, p)) for p in plugins
     ])
 
 
@@ -91,9 +92,9 @@ async def main() -> NoReturn:
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     }
 
-    async with ClientSession(connector=aiohttp.TCPConnector(limit=tcp_limit), headers=headers) as session:
-        for batch in _batch(_get_all_plugins(), tcp_limit):
-            plugins += await _fetch_all(session, batch)
+    async with ClientSession(connector=TCPConnector(limit=tcp_limit), headers=headers) as session:
+        for batch in create_batch(get_all_plugins(), tcp_limit):
+            plugins += await fetch_all(session, batch)
 
     Path("/tmp/elastic_plugins.txt").write_text("\n".join(plugins))
 
