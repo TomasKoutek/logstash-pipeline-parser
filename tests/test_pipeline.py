@@ -2,17 +2,15 @@ import unittest
 from ipaddress import IPv4Address
 from ipaddress import IPv6Address
 from typing import NoReturn
+from pathlib import Path
 
 from logstash_pipeline_parser import Pipeline
 
 
 class PipelineTestCase(unittest.TestCase):
 
-    def setUp(self) -> NoReturn:
-        self.ppl = Pipeline()
-
     def test_parse(self) -> NoReturn:
-        self.assertEqual(self.ppl.parse("""
+        pipeline = Pipeline(r"""
             input {
               syslog {
                 host => "127.0.0.1"
@@ -23,7 +21,22 @@ class PipelineTestCase(unittest.TestCase):
                 }
               }
             }
-              """), [["input", [["syslog", [["host", IPv4Address("127.0.0.1")], ["port", 123], ["codec", "cef"], ["qhashmap", [["somekey", "vaur"]]]]]]]])
+              """)
+
+        self.assertEqual(pipeline.parse(), [
+            ["input", [
+                ["syslog", [
+                    ["host", [IPv4Address("127.0.0.1")]],
+                    ["port", [123]],
+                    ["codec", ["cef"]],
+                    ["qhashmap", [
+                        [
+                            ["somekey", ["vaur"]]
+                        ]
+                    ]]
+                ]]
+            ]]
+        ])
 
     def test_matcher(self) -> NoReturn:
         self.assertTrue(Pipeline._matcher(["input", "syslog", "port"], ["input", "syslog", "port"]))
@@ -34,7 +47,7 @@ class PipelineTestCase(unittest.TestCase):
         self.assertTrue(Pipeline._matcher(["input", "syslog", "port"], ["*"]))
 
     def test_search(self) -> NoReturn:
-        data = """
+        data = r"""
             input {
               syslog {
                 port => 123
@@ -77,38 +90,58 @@ class PipelineTestCase(unittest.TestCase):
             }
             """
 
-        with self.assertRaises(ValueError):
-            list(self.ppl.search("some.key.*", data))
+        pipeline = Pipeline(data)
 
         self.assertEqual(
-            list(self.ppl.search("input.syslog.port", data)),
-            [("input.syslog.port", 123)]
+            list(pipeline.search("input.syslog.port")),
+            [("input.syslog.port", [123])]
         )
 
         self.assertEqual(
-            list(self.ppl.search("input.*.port", data)),
-            [("input.syslog.port", 123), ("input.udp.sub.port", 456)]
+            list(pipeline.search("input.*.port")),
+            [("input.syslog.port", [123]), ("input.udp.sub.port", [456])]
         )
 
         self.assertEqual(
-            list(self.ppl.search("*.port", data)),
-            [("input.syslog.port", 123), ("input.udp.sub.port", 456), ("filter.plug.port", 789)]
+            list(pipeline.search("*.port")),
+            [("input.syslog.port", [123]), ("input.udp.sub.port", [456]), ("filter.plug.port", [789])]
         )
 
         self.assertEqual(
-            list(self.ppl.search("*.name_1", data)),
-            [("filter.if.plugin1.name_1", 42), ("filter.else if.plugin2.name_1", 42), ("filter.else.plugin3.name_1", 42)]
+            list(pipeline.search("*.name_1")),
+            [("filter.if.plugin1.name_1", [42]), ("filter.else if.plugin2.name_1", [42]), ("filter.else.plugin3.name_1", [42])]
         )
 
         self.assertEqual(
-            list(self.ppl.search("filter.plug.somearr", data)),
-            [("filter.plug.somearr", ["abc", "def"])]
+            list(pipeline.search("filter.plug.somearr")),
+            [("filter.plug.somearr", [["abc", "def"]])]
         )
 
         self.assertEqual(
-            list(self.ppl.search("input.udp", data)),
-            [("input.udp", [["sub", [["port", 456], ["host", IPv6Address("::1")]]]])]
+            list(pipeline.search("input.udp")),
+            [("input.udp", [["sub", [[["port", [456]], ["host", [IPv6Address("::1")]]]]]])]
         )
+
+    def test_from_file(self) -> NoReturn:
+        self.assertEqual(Pipeline.from_file("./test_pipeline.conf").parse(), [
+            ["input", [
+                ["syslog", [
+                    ["port", [12345]],
+                    ["codec", ["cef"]],
+                    ["syslog_field", ["syslog"]]
+                ]]
+            ]]
+        ])
+
+        self.assertEqual(Pipeline.from_file(Path("./test_pipeline.conf")).parse(), [
+            ["input", [
+                ["syslog", [
+                    ["port", [12345]],
+                    ["codec", ["cef"]],
+                    ["syslog_field", ["syslog"]]
+                ]]
+            ]]
+        ])
 
 
 if __name__ == "__main__":
