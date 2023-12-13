@@ -19,6 +19,7 @@ class PipelineTestCase(unittest.TestCase):
                 qhashmap => {
                   somekey => "vaur"
                 }
+                ssl_key => "/some/path/to/key"
               }
             }
               """)
@@ -33,6 +34,9 @@ class PipelineTestCase(unittest.TestCase):
                         [
                             ["somekey", ["vaur"]]
                         ]
+                    ]],
+                    ["ssl_key", [
+                        Path("/some/path/to/key")
                     ]]
                 ]]
             ]]
@@ -85,6 +89,7 @@ class PipelineTestCase(unittest.TestCase):
               else {
                 plugin3 {
                   name_1 => 42
+                  public_key => "/test/file.txt"
                 }
               }
             }
@@ -120,6 +125,10 @@ class PipelineTestCase(unittest.TestCase):
         self.assertEqual(
             list(pipeline.search("input.udp")),
             [("input.udp", [["sub", [[["port", [456]], ["host", [IPv6Address("::1")]]]]]])]
+        )
+
+        self.assertEqual(
+            list(pipeline.search("*.plugin3.public_key")), [("filter.else.plugin3.public_key", [Path("/test/file.txt")])]
         )
 
     def test_from_file(self) -> NoReturn:
