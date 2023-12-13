@@ -1,27 +1,42 @@
+from collections.abc import Callable
 from collections.abc import Generator
+from pathlib import Path
+from typing import Any
 from typing import NoReturn
 from typing import Optional
+from typing import Self
 
 from .tree import AST
 
 
 class Pipeline:
 
-    def __init__(self) -> NoReturn:
-        self._ast = AST()
+    def __init__(self, pipeline: str) -> NoReturn:
+        self._ast: AST = AST()
+        self._data: str = pipeline
 
-    def parse(self, pipeline: str) -> list:
-        return self._ast.parse(pipeline)
+    def add_type(self, name: str, new_type: type[Any] | Callable[[Any], Any]) -> Self:
+        self._ast.add_type(name, new_type)
+        return self
 
-    def search(self, key: str, pipeline: str) -> Generator[tuple, None, None]:
-        key = key.split(".")
-        # TODO ?
-        if key[-1] == "*":
-            msg = "Wildcard is not supported at the end of the key."
-            raise ValueError(msg)
+    def remove_type(self, name: str) -> Self:
+        self._ast.remove_type(name)
+        return self
 
-        for element in self._ast.parse(pipeline):
-            yield from Pipeline._recursive_search(key, element)
+    @classmethod
+    def from_file(cls, path: str | Path) -> Self:
+        if isinstance(path, str):
+            path = Path(path)
+
+        return cls(path.read_text())
+
+    def parse(self) -> list:
+        return self._ast.parse_config(self._data)
+
+    def search(self, key: str) -> Generator[tuple, None, None]:
+
+        for element in self._ast.parse_config(self._data):
+            yield from Pipeline._recursive_search(key.split("."), element)
 
     # thx Francois Garillot
     # https://stackoverflow.com/a/8848959
@@ -39,25 +54,23 @@ class Pipeline:
             return False
 
     @staticmethod
-    def _recursive_search(key: list, _element: list, _actual_key: Optional[list] = None) -> list[tuple[str, str | int | float | list]]:
+    def _recursive_search(key: list, element: list, actual_key: Optional[list] = None) -> list[tuple[str, Any]]:
 
-        if _actual_key is None:
-            _actual_key = []
+        if actual_key is None:
+            actual_key = []
 
-        _actual_key = _actual_key.copy()
-        _matched = []
+        actual_key: list = actual_key.copy()
+        _matched: list[tuple[str, Any]] = []
 
-        if isinstance(_element, list):
+        if len(element) == 2 and isinstance(element[0], str):
+            actual_key.append(element[0])
 
-            if len(_element) == 2 and isinstance(_element[0], str):
-                _actual_key.append(_element[0])
-
-            if Pipeline._matcher(_actual_key, key):
-                _matched.append((".".join(_actual_key), _element[1]))
-            else:
-                for _sub in _element:
-                    if not isinstance(_sub, list):
-                        continue
-                    _matched += Pipeline._recursive_search(key, _sub, _actual_key)
+        if Pipeline._matcher(actual_key, key):
+            _matched.append((".".join(actual_key), element[1]))
+        else:
+            for child in element:
+                if not isinstance(child, list):
+                    continue
+                _matched += Pipeline._recursive_search(key, child, actual_key)
 
         return _matched

@@ -1,12 +1,20 @@
 from ipaddress import IPv4Address
 from ipaddress import IPv6Address
 from re import compile
+from collections.abc import Callable
+from typing import NoReturn
+from typing import Self
+from typing import Any
 
 import pyparsing as pp
 from pyparsing import common as ppc
 
 
-# DEBUG
+class ParseError(Exception):
+    pass
+
+
+# DEBUG PEG
 # ------------------------------------------------------------------------
 # pp.enable_diag(pp.Diagnostics.warn_multiple_tokens_in_named_alternation)
 # pp.enable_diag(pp.Diagnostics.warn_ungrouped_named_tokens_in_collection)
@@ -22,7 +30,13 @@ from pyparsing import common as ppc
 # ------------------------------------------------------------------------
 
 
-class AST:
+class PEG:
+    """
+
+    Parsing expression grammar
+
+    """
+
     array_start = pp.Suppress(pp.Literal("["))
     array_stop = pp.Suppress(pp.Literal("]"))
     object_start = pp.Suppress(pp.Literal("{"))
@@ -117,7 +131,8 @@ class AST:
         ( "'" ( "\\'" / !"'" . )* "'" <LogStash::Config::AST::String>)
       end
     """
-    single_quoted_string = pp.QuotedString(quote_char="'", esc_char="\\", escQuote="\\\\")
+
+    single_quoted_string = pp.QuotedString(quote_char="'", esc_char="\\")
     single_quoted_string.set_name("single_quoted_string")
 
     r"""
@@ -126,7 +141,7 @@ class AST:
       end
     """
 
-    double_quoted_string = pp.QuotedString(quote_char='"', esc_char="\\", escQuote="\\\\")
+    double_quoted_string = pp.QuotedString(quote_char='"', esc_char="\\")
     double_quoted_string.set_name("double_quoted_string")
 
     r"""
@@ -155,7 +170,7 @@ class AST:
       end
     """
 
-    compare_expression = pp.Group(rvalue + compare_operator + rvalue)
+    compare_expression = rvalue + compare_operator + rvalue
     compare_expression.set_name("compare_expression")
 
     r"""
@@ -211,7 +226,7 @@ class AST:
       end
     """
 
-    in_expression = pp.Group(rvalue + in_operator + rvalue)
+    in_expression = rvalue + in_operator + rvalue
     in_expression.set_name("in_expression")
 
     r"""
@@ -229,7 +244,7 @@ class AST:
       end
     """
 
-    not_in_expression = pp.Group(rvalue + not_in_operator + rvalue)
+    not_in_expression = rvalue + not_in_operator + rvalue
     not_in_expression.set_name("not_in_expression")
 
     r"""
@@ -307,7 +322,7 @@ class AST:
       end
     """
 
-    attribute = pp.Group(name + setter + value)
+    attribute = pp.Group(name + setter + pp.Group(value))
     attribute.set_name("attribute")
 
     r"""
@@ -364,7 +379,7 @@ class AST:
       end
     """
 
-    hash_entry = pp.Group((number | bare_word | string) + setter + value)
+    hash_entry = pp.Group((number | bare_word | string) + setter + pp.Group(value))
     hash_entry.set_name("hash_entry")
 
     r"""
@@ -446,6 +461,7 @@ class AST:
       end
     """
     # "else    \n #comment\n  if" as one string "else if"
+
     else_if_rule = pp.Group(pp.Combine(pp.Keyword("else") + pp.ZeroOrMore(cs).set_parse_action(pp.replace_with(" ")) + pp.Keyword("if")) + pp.Group(
         condition + object_start + pp.Group(pp.ZeroOrMore(branch_or_plugin)) + object_stop))
     else_if_rule.set_name("else_if")
@@ -479,9 +495,7 @@ class AST:
       end
     """
 
-    negative_expression = pp.Group(pp.Literal("!") + parenthesis_start + condition + parenthesis_stop) | \
-                          pp.Group(pp.Literal("!") + selector)
-
+    negative_expression = (pp.Literal("!") + parenthesis_start + condition + parenthesis_stop) | (pp.Literal("!") + selector)
     negative_expression.set_name("negative_expression")
 
     r"""
@@ -498,14 +512,14 @@ class AST:
       end
     """
 
-    expression << (
-            pp.Group(parenthesis_start + condition + parenthesis_stop) |
-            negative_expression |
-            in_expression |
-            not_in_expression |
-            compare_expression |
-            regexp_expression |
-            rvalue
+    expression << pp.Group(
+        (parenthesis_start + condition + parenthesis_stop) |
+        negative_expression |
+        in_expression |
+        not_in_expression |
+        compare_expression |
+        regexp_expression |
+        rvalue
     )
 
     r"""
@@ -544,5 +558,58 @@ class AST:
     config.ignore(comment)
     config.set_name("config")
 
-    def parse(self, pipeline: str) -> list:
-        return self.config.parse_string(pipeline).as_list()
+
+class AST:
+    """
+
+    Abstract syntax tree
+
+    """
+
+    def __init__(self) -> NoReturn:
+        self._peg: PEG = PEG()
+        self._types: dict = {}
+
+    def parse_config(self, pipeline: str) -> list:
+
+        try:
+            tree = self._peg.config.parse_string(pipeline, parse_all=True).as_list()
+        except pp.exceptions.ParseBaseException as e:
+            raise ParseError(f"\n{e.explain()}") from None
+
+        if self._types:
+            self._recursive_replace(tree)
+
+        return tree
+
+    def add_type(self, name: str, new_type: type[Any] | Callable[[Any], Any]) -> Self:
+        self._types[name] = new_type
+        return self
+
+    def remove_type(self, name: str) -> Self:
+        self._types.pop(name)
+        return self
+
+    def get_types(self) -> dict:
+        return self._types
+
+    def _recursive_replace(self, elements: list) -> NoReturn:
+        """
+        Replacement must start from the end of the tree.
+        If we start from the beginning, only the first B is replaced.
+
+        A -> B -> C -> B -> D
+        """
+
+        if isinstance(elements, list):
+            for element in elements:
+                self._recursive_replace(element)
+
+        if isinstance(elements, list) and len(elements) == 2 and str(elements[0]) in self._types:
+            name, child = elements
+            func = self._types.get(name)
+
+            if len(child) > 1:
+                elements[1] = [func(child)]
+            else:
+                elements[1] = [func(child[0])]
