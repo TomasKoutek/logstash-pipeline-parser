@@ -7,7 +7,8 @@ packages = ["logstash_pipeline_parser"]
 
 [project]
 name = "logstash-pipeline-parser"
-version = "0.0.1"
+version = "0.0.2"
+dynamic = ["version"]
 authors = [
     { name = "Tomas Koutek", email = "66636b6f6666@gmail.com" },
 ]
@@ -27,10 +28,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ruff = ["ruff==0.1.5"]
+dev = [
+    "ruff",
+    "sphinx",
+    "sphinx-rtd-theme",
+]
+
 
 [project.urls]
-"Documentation" = "https://github.com/TomasKoutek/logstash-pipeline-parser"
+"Documentation" = "https://tomaskoutek.github.io/logstash-pipeline-parser/"
 "Source" = "https://github.com/TomasKoutek/logstash-pipeline-parser"
 "Tracker" = "https://github.com/TomasKoutek/logstash-pipeline-parser/issues"
 
