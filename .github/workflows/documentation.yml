@@ -14,6 +14,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install sphinx sphinx_rtd_theme pyparsing
+      - name: Setup Graphviz
+        uses: ts-graphviz/setup-graphviz@v1
       - name: Sphinx build
         run: |
           sphinx-build doc _build
