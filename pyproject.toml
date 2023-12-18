@@ -3,12 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["logstash_pipeline_parser"]
+packages = [
+    "logstash_pipeline_parser"
+]
 
 [project]
 name = "logstash-pipeline-parser"
 version = "0.0.2"
-dynamic = ["version"]
 authors = [
     { name = "Tomas Koutek", email = "66636b6f6666@gmail.com" },
 ]
