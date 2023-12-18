@@ -2,7 +2,7 @@ venv/
 .ruff_cache/
 dist/
 logstash_pipeline_parser.egg-info/
-docs/build/doctrees/
+/doc/html/
 
 # Created by https://www.toptal.com/developers/gitignore/api/pycharm+all
 # Edit at https://www.toptal.com/developers/gitignore?templates=pycharm+all

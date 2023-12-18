@@ -94,7 +94,7 @@ This will produce array:
 
 .. note::
 
-   Parser automatically casts boolean values, numbers, IPv4/IPv6 addresses and filesysetm paths.
+   Parser automatically casts boolean values, numbers, IPv4/IPv6 addresses and filesystem paths.
 
 
 .. _examples-type:

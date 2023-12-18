@@ -21,7 +21,8 @@ version = '0.0.2'
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
-    "sphinx.ext.intersphinx"
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.graphviz"
 ]
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3.11', None)}

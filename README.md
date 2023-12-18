@@ -29,6 +29,8 @@ help(Pipeline.parse)
 
 ## Getting Started
 
+![graph](./doc/graphviz.png "Plugins tree")
+
 ### Installing
 
 Install from [pip](https://pypi.org/project/logstash-pipeline-parser/):

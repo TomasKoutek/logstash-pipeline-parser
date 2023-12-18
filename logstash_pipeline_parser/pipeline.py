@@ -129,6 +129,7 @@ class Pipeline:
     def remove_type(self, name: str) -> Self:
         """
         Removes a type
+
         :param name: a :py:class:`str`, the type name
         :return: :py:class:`Pipeline`
 
