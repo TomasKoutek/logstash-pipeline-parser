@@ -180,14 +180,14 @@ class PEGTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
 
     def test_if_rule(self) -> NoReturn:
         self.assertParseAndCheckList(PEG.if_rule, "if [some][true][value] { plugin_name { name_1 => 42 } }",
-                                     [["if", [["[some][true][value]"], [["plugin_name", [["name_1", [42]]]]]]]])
+                                     [["if", [["[some][true][value]"], [[["plugin_name", [["name_1", [42]]]]]]]]])
 
     def test_else_if_rule(self) -> NoReturn:
         self.assertParseAndCheckList(PEG.else_if_rule, "else   \t  if [some][true][value] { plugin_name { name_1 => 42 } }",
-                                     [["else if", [["[some][true][value]"], [["plugin_name", [["name_1", [42]]]]]]]])
+                                     [["else if", [["[some][true][value]"], [[["plugin_name", [["name_1", [42]]]]]]]]])
 
         self.assertParseAndCheckList(PEG.else_if_rule, "else  \n#comment\r\n  if [some][true][value] { plugin_name { name_1 => 42 } }",
-                                     [["else if", [["[some][true][value]"], [["plugin_name", [["name_1", [42]]]]]]]])
+                                     [["else if", [["[some][true][value]"], [[["plugin_name", [["name_1", [42]]]]]]]]])
 
     def test_else_rule(self) -> NoReturn:
         self.assertParseAndCheckList(PEG.else_rule, "else  \t  { plugin_name { name_1 => 42 } }", [["else", [["plugin_name", [["name_1", [42]]]]]]])
@@ -204,11 +204,12 @@ class PEGTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
           }
         }""", [
             ["if", [
-                [1, "<", 2],
-                [
-                    ["plugin1", [
-                        ["name_1", [42]]
-                    ]]
+                [1, "<", 2], [
+                    [
+                        ["plugin1", [
+                            ["name_1", [42]]
+                        ]]
+                    ]
                 ]
             ]]
         ])
@@ -225,11 +226,12 @@ class PEGTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
           }
         }""", [
             ["if", [
-                [1, "<", 2],
-                [
-                    ["plugin1", [
-                        ["name_1", [42]]
-                    ]]
+                [1, "<", 2], [
+                    [
+                        ["plugin1", [
+                            ["name_1", [42]]
+                        ]]
+                    ]
                 ]
             ]],
             ["else", [
@@ -258,19 +260,21 @@ class PEGTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
           }
         }""", [
             ["if", [
-                [1, "<", 2],
-                [
-                    ["plugin1", [
-                        ["name_1", [42]]
-                    ]]
+                [1, "<", 2], [
+                    [
+                        ["plugin1", [
+                            ["name_1", [42]]
+                        ]]
+                    ]
                 ]
             ]],
             ["else if", [
-                ["[some][true][value]"],
-                [
-                    ["plugin2", [
-                        ["name_1", [42]]
-                    ]]
+                ["[some][true][value]"], [
+                    [
+                        ["plugin2", [
+                            ["name_1", [42]]
+                        ]]
+                    ]
                 ]
             ]],
             ["else", [
@@ -436,42 +440,45 @@ class PEGTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
             ]],
             ["filter", [
                 ["if", [
-                    ["[log][file][path]", "in", ["/path/one", "/path/two"]],
-                    [
-                        ["grok", [
-                            ["match", [
-                                [
-                                    ["original_message", ['[(?<timestamp>%{YEAR}..."%{GREEDYDATA:message}"']]
-                                ]
+                    ["[log][file][path]", "in", ["/path/one", "/path/two"]], [
+                        [
+                            ["grok", [
+                                ["match", [
+                                    [
+                                        ["original_message", ['[(?<timestamp>%{YEAR}..."%{GREEDYDATA:message}"']]
+                                    ]
+                                ]]
+                            ]],
+                            ["date", [
+                                ["match", [
+                                    ["timestamp", "yyyy-MM-dd HH:mm:ss Z"]
+                                ]]
                             ]]
-                        ]],
-                        ["date", [
-                            ["match", [
-                                ["timestamp", "yyyy-MM-dd HH:mm:ss Z"]
-                            ]]
-                        ]]
+                        ]
                     ]
                 ]],
                 ["else if", [
-                    [1, "<", 42],
-                    [
-                        ["grok", [
-                            ["match", [
-                                [
-                                    ["original_message", ["double quoted grok pattern"]]
+                    [1, "<", 42], [
+                        [
+                            ["grok", [
+                                ["match", [
+                                    [
+                                        ["original_message", ["double quoted grok pattern"]]
+                                    ]
+                                ]]
+                            ]],
+                            ["if", [
+                                ["_grokparsefailure", "not", "in", "[tags]"], [
+                                    [
+                                        ["date", [
+                                            ["match", [
+                                                ["timestamp", "ISO8601"]
+                                            ]]
+                                        ]]
+                                    ]
                                 ]
                             ]]
-                        ]],
-                        ["if", [
-                            ["_grokparsefailure", "not", "in", "[tags]"],
-                            [
-                                ["date", [
-                                    ["match", [
-                                        ["timestamp", "ISO8601"]
-                                    ]]
-                                ]]
-                            ]
-                        ]]
+                        ]
                     ]
                 ]],
                 ["else", [
@@ -499,13 +506,14 @@ class PEGTestCase(ppt.TestParseResultsAsserts, unittest.TestCase):
                         ]]
                     ]],
                     ["if", [
-                        ["[field][keyword]", "=~", "^(TEST|test)-.*$"],
-                        [
-                            ["mutate", [
-                                ["add_tag", [
-                                    ["TEST"]
+                        ["[field][keyword]", "=~", "^(TEST|test)-.*$"], [
+                            [
+                                ["mutate", [
+                                    ["add_tag", [
+                                        ["TEST"]
+                                    ]]
                                 ]]
-                            ]]
+                            ]
                         ]
                     ]]
                 ]]

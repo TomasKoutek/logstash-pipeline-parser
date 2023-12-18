@@ -451,7 +451,7 @@ class PEG:
       end
     """
 
-    if_rule = pp.Group(pp.Keyword("if") + pp.Group(condition + object_start + pp.Group(pp.ZeroOrMore(branch_or_plugin)) + object_stop))
+    if_rule = pp.Group(pp.Keyword("if") + pp.Group(condition + pp.Group(object_start + pp.Group(pp.ZeroOrMore(branch_or_plugin)) + object_stop)))
     if_rule.set_name("if")
 
     r"""
@@ -463,7 +463,7 @@ class PEG:
     # "else    \n #comment\n  if" as one string "else if"
 
     else_if_rule = pp.Group(pp.Combine(pp.Keyword("else") + pp.ZeroOrMore(cs).set_parse_action(pp.replace_with(" ")) + pp.Keyword("if")) + pp.Group(
-        condition + object_start + pp.Group(pp.ZeroOrMore(branch_or_plugin)) + object_stop))
+        condition + pp.Group(object_start + pp.Group(pp.ZeroOrMore(branch_or_plugin)) + object_stop)))
     else_if_rule.set_name("else_if")
 
     r"""
