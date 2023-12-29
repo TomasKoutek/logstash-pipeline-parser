@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About &mdash; Logstash pipeline parser 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="#" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" />
+    <link rel="prev" title="Logstash pipeline parser documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Logstash pipeline parser
+          </a>
+              <div class="version">
+                0.0.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">About</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-logstash-pipeline">What is Logstash pipeline</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#issue-tracking">Issue tracking</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Logstash pipeline parser</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">About</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/about.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="about">
+<h1>About<a class="headerlink" href="#about" title="Link to this heading"></a></h1>
+<p><strong>Logstash pipeline parser</strong> 0.0.2</p>
+<div class="graphviz"><img src="_images/graphviz-7b2bfb3c418bad5c2c2e9829641e35ec53b274bb.png" alt="digraph G {
+  compound=true;
+  ratio=&quot;compress&quot;
+
+  subgraph cluster_0 {
+    label = &quot;plugin&quot;;
+    1 [label=&quot;input&quot;];
+
+    1 -&gt; 2;
+
+    subgraph cluster_7 {
+      label = &quot;plugin type&quot;;
+      style = &quot;dashed&quot;
+      labelloc=&quot;bottom&quot;;
+
+      2 [label=&quot;syslog&quot;];
+      3 [label=&quot;port&quot;];
+      4 [label=&quot;5044&quot;];
+      5 [label=&quot;codec&quot;];
+      6 [label=&quot;cef&quot;];
+
+      2 -&gt; {3 5};
+      3 -&gt; 4;
+      5 -&gt; 6;
+    }
+  }
+
+  subgraph cluster_2 {
+    label = &quot;plugin&quot;;
+
+    16 [label=&quot;filter&quot;];
+    17 [label=&quot;if&quot;];
+    24 [label=&quot;else if&quot;];
+
+    subgraph cluster_6 {
+      label = &quot;filter plugin&quot;;
+      style = &quot;dashed&quot;;
+      labelloc=&quot;bottom&quot;;
+
+      21 [label=&quot;copy&quot;];
+      22 [label=&quot;source&quot;];
+      23 [label=&quot;target&quot;];
+
+      21 -&gt; 22;
+      22 -&gt; 23;
+    }
+
+    subgraph cluster_8 {
+      label = &quot;filter plugin&quot;;
+      style = &quot;dashed&quot;;
+      labelloc=&quot;bottom&quot;;
+
+      33 [label=&quot;json&quot;];
+      34 [label=&quot;message&quot;];
+      35 [label=&quot;target&quot;];
+      36 [label=&quot;source&quot;];
+      37 [label=&quot;doc&quot;];
+
+      33 -&gt; {35 36};
+      36 -&gt; 34;
+      35 -&gt; 37;
+    }
+
+    subgraph cluster_9 {
+      label = &quot;filter plugin&quot;;
+      style = &quot;dashed&quot;;
+      labelloc=&quot;bottom&quot;;
+
+      38 [label=&quot;mutate&quot;];
+      39 [label=&quot;rename&quot;];
+      40 [label=&quot;shortHostname&quot;];
+      41 [label=&quot;hostname&quot;];
+
+      38 -&gt; 39;
+      39 -&gt; 40;
+      40 -&gt; 41;
+    }
+
+    subgraph cluster_3 {
+      label = &quot;condition&quot;;
+      labelloc=&quot;bottom&quot;;
+      style = &quot;dashed&quot;;
+
+      20 [label=&quot;42&quot; constraint=false];
+      19 [label=&quot;&gt;=&quot; constraint=false];
+      18 [label=&quot;[field]&quot; constraint=false];
+    }
+
+    subgraph cluster_5 {
+      label = &quot;filter plugin&quot;;
+      style = &quot;dashed&quot;;
+      labelloc=&quot;bottom&quot;;
+
+      25 [label=&quot;mutate&quot;];
+      26 [label=&quot;convert&quot;];
+      27 [label=&quot;field&quot;];
+      28 [label=&quot;integer&quot;];
+
+      25 -&gt; 26;
+      26 -&gt; 27;
+      27 -&gt; 28;
+    }
+
+    subgraph cluster_4 {
+      label = &quot;condition&quot;;
+      labelloc=&quot;bottom&quot;
+      style = &quot;dashed&quot;;
+      labelloc=&quot;bottom&quot;;
+
+      32 [label=&quot;path2&quot;];
+      31 [label=&quot;path1&quot;];
+      30 [label=&quot;in&quot;];
+      29 [label=&quot;[path]&quot;];
+    }
+
+    16 -&gt; {24 17};
+
+    30 -&gt; 38 [ltail=cluster_4 minlen=2];
+    30 -&gt; 33 [ltail=cluster_4 minlen=2];
+    30 -&gt; 21 [ltail=cluster_4 minlen=2];
+    19 -&gt; 25 [ltail=cluster_3 minlen=2];
+    17 -&gt; {18 19 20};
+    24 -&gt; {29 30 31 32};
+  }
+
+  subgraph cluster_1 {
+    label = &quot;plugin&quot;;
+    7 [label=&quot;output&quot;];
+
+    7 -&gt; 8;
+
+    subgraph cluster_10 {
+      label = &quot;plugin type&quot;;
+      labelloc=&quot;bottom&quot;;
+      style = &quot;dashed&quot;;
+      labelloc=&quot;bottom&quot;;
+
+      8 [label=&quot;elasticsearch&quot;];
+      9 [label=&quot;index&quot;];
+      10 [label=&quot;my-index&quot;];
+      13 [label=&quot;hosts&quot;];
+      14 [label=&quot;es-host1&quot;];
+      15 [label=&quot;es-host2&quot;];
+
+      8 -&gt; {9 13};
+      9 -&gt; 10;
+      13 -&gt; {14 15};
+
+    }
+  }
+}" class="graphviz" /></div>
+<section id="what-is-logstash-pipeline">
+<h2>What is Logstash pipeline<a class="headerlink" href="#what-is-logstash-pipeline" title="Link to this heading"></a></h2>
+<p><em>The Logstash event processing pipeline has three stages: inputs → filters → outputs.
+Inputs generate events, filters modify them, and outputs ship them elsewhere.
+Inputs and outputs support codecs that enable you to encode or decode the data as it enters or exits the pipeline without having to use a separate filter.</em></p>
+<p>The pipeline configuration file is a custom format developed by the Logstash folks using <a class="reference external" href="https://cjheath.github.io/treetop/syntactic_recognition.html">Treetop</a>.
+The grammar itself is described in the source file <a class="reference external" href="https://github.com/elastic/logstash/tree/v8.11.1/logstash-core/lib/logstash/config/grammar.treetop">grammar.treetop</a> and compiled using Treetop into the custom <a class="reference external" href="https://github.com/elastic/logstash/blob/v8.11.1/logstash-core/lib/logstash/config/grammar.rb">grammar.rb</a> parser.
+That parser is then used to set up the pipeline from the Logstash configuration.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.elastic.co/guide/en/logstash/current/pipeline.html">How Logstash Works</a></p></li>
+<li><p><a class="reference external" href="https://www.elastic.co/guide/en/logstash/current/configuration.html">Creating a Logstash pipeline</a></p></li>
+</ul>
+</div>
+</section>
+<section id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
+<p>The parser has only one dependency on the <a class="reference external" href="https://github.com/pyparsing/pyparsing">pyparsing</a> package for creating <a class="reference external" href="https://en.wikipedia.org/wiki/Parsing_expression_grammar">PEG parser</a></p>
+</section>
+<section id="issue-tracking">
+<h2>Issue tracking<a class="headerlink" href="#issue-tracking" title="Link to this heading"></a></h2>
+<p>You can find existing and fixed bugs by clicking on <a class="reference external" href="https://github.com/TomasKoutek/logstash-pipeline-parser/issues">Issues</a> and using “New Issue”
+to report previously unknown issues.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Logstash pipeline parser documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Tomas Koutek.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

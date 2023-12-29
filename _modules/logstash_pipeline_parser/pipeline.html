@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>logstash_pipeline_parser.pipeline &mdash; Logstash pipeline parser 0.0.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=eafc0fe6" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="author" title="About these documents" href="../../about.html" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Logstash pipeline parser
+          </a>
+              <div class="version">
+                0.0.2
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../about.html">About</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../pipeline.html">Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../examples.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../genindex.html">Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Logstash pipeline parser</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">logstash_pipeline_parser.pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for logstash_pipeline_parser.pipeline</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Callable</span>
+<span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Generator</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">NoReturn</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Self</span>
+
+<span class="kn">from</span> <span class="nn">.tree</span> <span class="kn">import</span> <span class="n">AST</span>
+
+
+<div class="viewcode-block" id="Pipeline">
+<a class="viewcode-back" href="../../pipeline.html#logstash_pipeline_parser.Pipeline">[docs]</a>
+<span class="k">class</span> <span class="nc">Pipeline</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param pipeline: The pipeline definition</span>
+<span class="sd">    :type pipeline: str</span>
+
+<span class="sd">    A class representing the Logstash pipeline.</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noinspection</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pipeline</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">NoReturn</span><span class="p">:</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ast</span><span class="p">:</span> <span class="n">AST</span> <span class="o">=</span> <span class="n">AST</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">pipeline</span>
+
+        <span class="c1"># Path type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ast</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;aggregate_maps_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;cacert&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ca_file&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;client_cert&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;client_key&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;database&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;dictionary_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;jaas_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;jdbc_driver_library&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;jdbc_password_filepath&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;json_key_file&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;kerberos_config&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;keystore&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;mib_paths&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;network_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;private_key&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;processed_db_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;public_key&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;schema_registry_ssl_keystore_location&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;schema_registry_ssl_truststore_location&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;send_nsca_config&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_cacert&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_cert&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_certificate&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_certificate_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_key&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_keystore_location&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_keystore_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_truststore_location&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;ssl_truststore_path&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;statement_filepath&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;template&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;template_file&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span> \
+            <span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="s2">&quot;truststore&quot;</span><span class="p">,</span> <span class="n">Path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Pipeline.from_file">
+<a class="viewcode-back" href="../../pipeline.html#logstash_pipeline_parser.Pipeline.from_file">[docs]</a>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param path: Path to the file</span>
+<span class="sd">        :type path: str | pathlib.Path</span>
+<span class="sd">        :rtype: Pipeline</span>
+
+<span class="sd">        Instantiates class from a file.</span>
+
+<span class="sd">        For example from string:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">           from logstash_parser import Pipeline</span>
+
+<span class="sd">           pipeline = Pipeline.from_file(&quot;/some/path/to/pipeline.conf&quot;)</span>
+
+<span class="sd">        Or from Path:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">           from logstash_parser import Pipeline</span>
+<span class="sd">           from pathlib import Path</span>
+
+<span class="sd">           path = Path(&quot;/some/path/to/pipeline.conf&quot;)</span>
+<span class="sd">           pipeline = Pipeline.from_file(path)</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noinspection</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="Pipeline.add_type">
+<a class="viewcode-back" href="../../pipeline.html#logstash_pipeline_parser.Pipeline.add_type">[docs]</a>
+    <span class="k">def</span> <span class="nf">add_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">new_type</span><span class="p">:</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param name: Type name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :param new_type: New type for given name.</span>
+<span class="sd">        :type new_type: type[typing.Any] | typing.Callable[[typing.Any], typing.Any]</span>
+<span class="sd">        :rtype: Pipeline</span>
+
+<span class="sd">        Adds a new type.</span>
+
+<span class="sd">        For example function:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">           from logstash_parser import Pipeline</span>
+
+<span class="sd">           Pipeline(&quot;&quot;).add_type(&quot;port&quot;, str)</span>
+
+<span class="sd">        For example class:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">           from logstash_parser import Pipeline</span>
+
+<span class="sd">           class MyPortType:</span>
+<span class="sd">               pass</span>
+
+<span class="sd">           Pipeline(&quot;&quot;).add_type(&quot;port&quot;, MyPortType)</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">           Please see :ref:`examples-type` for more examples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noinspection</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ast</span><span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">new_type</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Pipeline.remove_type">
+<a class="viewcode-back" href="../../pipeline.html#logstash_pipeline_parser.Pipeline.remove_type">[docs]</a>
+    <span class="k">def</span> <span class="nf">remove_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Self</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param name: Type name</span>
+<span class="sd">        :type name: str</span>
+<span class="sd">        :rtype: Pipeline</span>
+
+<span class="sd">        Removes a type</span>
+
+<span class="sd">        For example function:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">           from logstash_parser import Pipeline</span>
+
+<span class="sd">           Pipeline(&quot;&quot;).remove_type(&quot;port&quot;)</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noinspection</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ast</span><span class="o">.</span><span class="n">remove_type</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="Pipeline.get_types">
+<a class="viewcode-back" href="../../pipeline.html#logstash_pipeline_parser.Pipeline.get_types">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">type</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: All names as key and types as value.</span>
+<span class="sd">        :rtype: dict</span>
+
+<span class="sd">        Returns all defined types</span>
+
+<span class="sd">        Predefined types are:</span>
+
+<span class="sd">        .. list-table::</span>
+<span class="sd">           :header-rows: 1</span>
+<span class="sd">           :widths: auto</span>
+
+<span class="sd">           * - Name</span>
+<span class="sd">             - Type/Callable</span>
+<span class="sd">           * - aggregate_maps_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - cacert</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ca_file</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - client_cert</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - client_key</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - database</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - dictionary_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - jaas_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - jdbc_driver_library</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - jdbc_password_filepath</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - json_key_file</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - kerberos_config</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - keystore</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - mib_paths</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - network_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - private_key</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - processed_db_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - public_key</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - schema_registry_ssl_keystore_location</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - schema_registry_ssl_truststore_location</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - send_nsca_config</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_cacert</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_cert</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_certificate</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_certificate_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_key</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_keystore_location</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_keystore_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_truststore_location</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - ssl_truststore_path</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - statement_filepath</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - template</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - template_file</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">           * - truststore</span>
+<span class="sd">             - :py:class:`pathlib.Path`</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noinspection</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ast</span><span class="o">.</span><span class="n">get_types</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Pipeline.parse">
+<a class="viewcode-back" href="../../pipeline.html#logstash_pipeline_parser.Pipeline.parse">[docs]</a>
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: Parsed tree</span>
+<span class="sd">        :rtype: list</span>
+
+<span class="sd">        Create an `Abstract syntax tree &lt;https://en.wikipedia.org/wiki/Abstract_syntax_tree&gt;`_  from the input data.</span>
+<span class="sd">        Of course, it is possible to parse all kinds of plugins, conditions and data types.</span>
+
+<span class="sd">        For example this input:</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">           from logstash_pipeline_parser import Pipeline</span>
+
+<span class="sd">           data = r\&quot;&quot;&quot;</span>
+           <span class="nb">input</span> <span class="p">{</span>
+             <span class="n">beats</span> <span class="p">{</span>
+               <span class="n">host</span> <span class="o">=&gt;</span> <span class="s2">&quot;0.0.0.0&quot;</span>
+               <span class="n">port</span> <span class="o">=&gt;</span> <span class="mi">5044</span>
+               <span class="n">client_inactivity_timeout</span> <span class="o">=&gt;</span> <span class="mi">3600</span>
+               <span class="n">include_codec_tag</span> <span class="o">=&gt;</span> <span class="n">true</span>
+               <span class="n">enrich</span> <span class="o">=&gt;</span> <span class="p">[</span><span class="n">source_metadata</span><span class="p">,</span> <span class="n">ssl_peer_metadata</span><span class="p">]</span>
+               <span class="n">ssl</span> <span class="o">=&gt;</span> <span class="n">true</span>
+               <span class="n">ssl_key</span> <span class="o">=&gt;</span> <span class="s2">&quot;/some/path/my.key&quot;</span>
+               <span class="nb">id</span> <span class="o">=&gt;</span> <span class="s2">&quot;input_beats&quot;</span>
+             <span class="p">}</span>
+           <span class="p">}</span>
+           \<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2">           ast = Pipeline(data).parse()</span>
+
+<span class="s2">        will produce this array:</span>
+
+<span class="s2">        .. code-block:: python</span>
+
+<span class="s2">           from ipaddress import IPv4Address</span>
+<span class="s2">           from pathlib import Path</span>
+
+<span class="s2">           [</span>
+<span class="s2">               [&quot;input&quot;,[</span>
+<span class="s2">                   [&quot;beats&quot;, [</span>
+<span class="s2">                       [&quot;host&quot;, [IPv4Address(&quot;0.0.0.0&quot;)]],</span>
+<span class="s2">                       [&quot;port&quot;, [5044]],</span>
+<span class="s2">                       [&quot;client_inactivity_timeout&quot;, [3600]],</span>
+<span class="s2">                       [&quot;include_codec_tag&quot;, [True]],</span>
+<span class="s2">                       [&quot;enrich&quot;, [</span>
+<span class="s2">                           [&quot;source_metadata&quot;, &quot;ssl_peer_metadata&quot;]</span>
+<span class="s2">                       ]],</span>
+<span class="s2">                       [&quot;ssl&quot;, [True]],</span>
+<span class="s2">                       [&quot;ssl_key&quot;, [Path(&quot;/some/path/my.key&quot;)]],</span>
+<span class="s2">                       [&quot;id&quot;, [&quot;input_beats&quot;]]</span>
+<span class="s2">                   ]]</span>
+<span class="s2">               ]]</span>
+<span class="s2">           ]</span>
+<span class="s2">        &quot;&quot;&quot;</span>  <span class="c1"># noinspection</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ast</span><span class="o">.</span><span class="n">parse_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Pipeline.search">
+<a class="viewcode-back" href="../../pipeline.html#logstash_pipeline_parser.Pipeline.search">[docs]</a>
+    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;        </span>
+<span class="sd">        :param key: Key name to search for</span>
+<span class="sd">        :type key: str</span>
+<span class="sd">        :return: Found values in the form tuple[key, value]</span>
+<span class="sd">        :rtype: collections.abc.Generator[tuple[str, typing.Any], None, None]</span>
+
+<span class="sd">        Yield the searched keys and their values from the tree.</span>
+<span class="sd">        The key can also contain the wildcard `*`, for example &quot;output.*.hosts&quot; will return</span>
+<span class="sd">        (if the pipeline definition contains them):</span>
+
+<span class="sd">        .. code-block:: console</span>
+
+<span class="sd">           - (&quot;output.elasticsearch.hosts&quot;, [&quot;127.0.0.1:9200&quot;,&quot;127.0.0.2:9200&quot;])</span>
+<span class="sd">           - (&quot;output.logstash.hosts&quot;, &quot;127.0.0.1:9801&quot;)</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">           Please see :ref:`examples-search` for more examples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noinspection</span>
+
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ast</span><span class="o">.</span><span class="n">parse_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_data</span><span class="p">):</span>
+            <span class="k">yield from</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">_recursive_search</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">),</span> <span class="n">element</span><span class="p">)</span></div>
+
+
+    <span class="c1"># thx Francois Garillot</span>
+    <span class="c1"># https://stackoverflow.com/a/8848959</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_matcher</span><span class="p">(</span><span class="n">_l1</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">_l2</span><span class="p">:</span> <span class="nb">list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">_l1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">_l2</span> <span class="o">==</span> <span class="p">[]</span> <span class="ow">or</span> <span class="n">_l2</span> <span class="o">==</span> <span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">_l2</span> <span class="o">==</span> <span class="p">[]</span> <span class="ow">or</span> <span class="n">_l2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">_matcher</span><span class="p">(</span><span class="n">_l2</span><span class="p">,</span> <span class="n">_l1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_l1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">_matcher</span><span class="p">(</span><span class="n">_l1</span><span class="p">,</span> <span class="n">_l2</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="ow">or</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">_matcher</span><span class="p">(</span><span class="n">_l1</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">_l2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_l1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">_l2</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">_matcher</span><span class="p">(</span><span class="n">_l1</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">_l2</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_recursive_search</span><span class="p">(</span><span class="n">key</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">element</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">actual_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+
+        <span class="k">if</span> <span class="n">actual_key</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">actual_key</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">actual_key</span><span class="p">:</span> <span class="nb">list</span> <span class="o">=</span> <span class="n">actual_key</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">_matched</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">element</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">actual_key</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">_matcher</span><span class="p">(</span><span class="n">actual_key</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+            <span class="n">_matched</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;.&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">actual_key</span><span class="p">),</span> <span class="n">element</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">element</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">_matched</span> <span class="o">+=</span> <span class="n">Pipeline</span><span class="o">.</span><span class="n">_recursive_search</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">child</span><span class="p">,</span> <span class="n">actual_key</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">_matched</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Tomas Koutek.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
