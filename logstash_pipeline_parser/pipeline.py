@@ -298,7 +298,10 @@ class Pipeline:
         return self._ast.parse_config(self._data)
 
     def search(self, key: str) -> Generator[tuple[str, Any], None, None]:
-        """
+        """        
+        :param key: Key name to search for
+        :type key: str
+        :return: Found values in the form tuple[key, value]
         :rtype: collections.abc.Generator[tuple[str, typing.Any], None, None]
 
         Yield the searched keys and their values from the tree.
@@ -313,9 +316,6 @@ class Pipeline:
         .. note::
 
            Please see :ref:`examples-search` for more examples.
-
-        :param key: a :py:class:`str`, the key name to search for
-        :return: a yield, the found values in the form tuple[key, value]
         """  # noinspection
 
         for element in self._ast.parse_config(self._data):
