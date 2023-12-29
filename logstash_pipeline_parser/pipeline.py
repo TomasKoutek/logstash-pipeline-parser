@@ -11,15 +11,14 @@ from .tree import AST
 
 class Pipeline:
     """
+    :param pipeline: The pipeline definition
+    :type pipeline: str
+
     A class representing the Logstash pipeline.
-    """
+    """  # noinspection
 
     def __init__(self, pipeline: str) -> NoReturn:
-        """
-        Instantiates class from a given string.
 
-        :param pipeline: a :py:class:`str`, the pipeline definition
-        """
         self._ast: AST = AST()
         self._data: str = pipeline
 
@@ -64,10 +63,11 @@ class Pipeline:
     @classmethod
     def from_file(cls, path: str | Path) -> Self:
         """
-        Instantiates class from a file.
+        :param path: Path to the file
+        :type path: str | pathlib.Path
+        :rtype: Pipeline
 
-        :param path: :py:class:`str` or :py:class:`pathlib.Path`, the path to the file
-        :return: :py:class:`Pipeline`
+        Instantiates class from a file.
 
         For example from string:
 
@@ -86,7 +86,8 @@ class Pipeline:
 
            path = Path("/some/path/to/pipeline.conf")
            pipeline = Pipeline.from_file(path)
-        """
+        """  # noinspection
+
         if isinstance(path, str):
             path = Path(path)
 
@@ -94,11 +95,13 @@ class Pipeline:
 
     def add_type(self, name: str, new_type: type[Any] | Callable[[Any], Any]) -> Self:
         """
-        Adds a new type
+        :param name: Type name
+        :type name: str
+        :param new_type: New type for given name.
+        :type new_type: type[typing.Any] | typing.Callable[[typing.Any], typing.Any]
+        :rtype: Pipeline
 
-        :param name: a :py:class:`str`, the type name
-        :param new_type: a type or callable, the new type for given name
-        :returns: :py:class:`Pipeline`
+        Adds a new type.
 
         For example function:
 
@@ -122,16 +125,18 @@ class Pipeline:
         .. note::
 
            Please see :ref:`examples-type` for more examples.
-        """
+        """  # noinspection
+
         self._ast.add_type(name, new_type)
         return self
 
     def remove_type(self, name: str) -> Self:
         """
-        Removes a type
+        :param name: Type name
+        :type name: str
+        :rtype: Pipeline
 
-        :param name: a :py:class:`str`, the type name
-        :return: :py:class:`Pipeline`
+        Removes a type
 
         For example function:
 
@@ -140,15 +145,17 @@ class Pipeline:
            from logstash_parser import Pipeline
 
            Pipeline("").remove_type("port")
-        """
+        """  # noinspection
+
         self._ast.remove_type(name)
         return self
 
     def get_types(self) -> dict[str, type[Any] | Callable[[Any], Any]]:
         """
-        Returns all defined types
+        :return: All names as key and types as value.
+        :rtype: dict
 
-        :return: a :py:class:`dict`, all names as key and types as value
+        Returns all defined types
 
         Predefined types are:
 
@@ -228,15 +235,17 @@ class Pipeline:
              - :py:class:`pathlib.Path`
            * - truststore
              - :py:class:`pathlib.Path`
-        """
+        """  # noinspection
+
         return self._ast.get_types()
 
     def parse(self) -> list:
         """
+        :return: Parsed tree
+        :rtype: list
+
         Create an `Abstract syntax tree <https://en.wikipedia.org/wiki/Abstract_syntax_tree>`_  from the input data.
         Of course, it is possible to parse all kinds of plugins, conditions and data types.
-
-        :return: a :py:class:`list`, the parsed tree
 
         For example this input:
 
@@ -284,11 +293,14 @@ class Pipeline:
                    ]]
                ]]
            ]
-        """
+        """  # noinspection
+
         return self._ast.parse_config(self._data)
 
     def search(self, key: str) -> Generator[tuple[str, Any], None, None]:
         """
+        :rtype: collections.abc.Generator[tuple[str, typing.Any], None, None]
+
         Yield the searched keys and their values from the tree.
         The key can also contain the wildcard `*`, for example "output.*.hosts" will return
         (if the pipeline definition contains them):
@@ -304,7 +316,7 @@ class Pipeline:
 
         :param key: a :py:class:`str`, the key name to search for
         :return: a yield, the found values in the form tuple[key, value]
-        """
+        """  # noinspection
 
         for element in self._ast.parse_config(self._data):
             yield from Pipeline._recursive_search(key.split("."), element)
