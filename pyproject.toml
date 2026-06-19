@@ -9,13 +9,13 @@ packages = [
 
 [project]
 name = "logstash-pipeline-parser"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
     { name = "Tomas Koutek", email = "66636b6f6666@gmail.com" },
 ]
 description = "Parsing expression grammar and Abstract syntax tree for Logstash pipeline syntax."
 readme = "README.md"
-requires-python = ">=3.11.0, <3.12.0"
+requires-python = ">=3.11.0, <3.14.0"
 keywords = ["logstash", "config", "pipeline", "peg", "ast", "parser"]
 license = { text = "MIT" }
 classifiers = [
@@ -23,6 +23,10 @@ classifiers = [
     "Intended Audience :: Developers",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+
 ]
 dependencies = [
     "pyparsing>=3.1.1,<=4.0.0",
@@ -70,8 +74,8 @@ exclude = [
 line-length = 200
 indent-width = 4
 
-# Assume Python 3.11
-target-version = "py311"
+# Assume Python 3.13
+target-version = "py313"
 
 [tool.ruff.lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
