@@ -2,7 +2,6 @@ from collections.abc import Callable
 from collections.abc import Generator
 from pathlib import Path
 from typing import Any
-from typing import NoReturn
 from typing import Optional
 from typing import Self
 
@@ -17,7 +16,7 @@ class Pipeline:
     A class representing the Logstash pipeline.
     """  # noinspection
 
-    def __init__(self, pipeline: str) -> NoReturn:
+    def __init__(self, pipeline: str) -> None:
 
         self._ast: AST = AST()
         self._data: str = pipeline

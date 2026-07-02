@@ -2,7 +2,6 @@ from ipaddress import IPv4Address
 from ipaddress import IPv6Address
 from re import compile
 from collections.abc import Callable
-from typing import NoReturn
 from typing import Self
 from typing import Any
 
@@ -566,7 +565,7 @@ class AST:
 
     """
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         self._peg: PEG = PEG()
         self._types: dict = {}
 
@@ -593,7 +592,7 @@ class AST:
     def get_types(self) -> dict:
         return self._types
 
-    def _recursive_replace(self, elements: list) -> NoReturn:
+    def _recursive_replace(self, elements: list) -> None:
         """
         Replacement must start from the end of the tree.
         If we start from the beginning, only the first B is replaced.

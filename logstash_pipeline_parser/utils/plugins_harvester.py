@@ -7,7 +7,6 @@ from io import StringIO
 from itertools import chain
 from itertools import islice
 from pathlib import Path
-from typing import NoReturn
 from urllib.error import HTTPError
 
 import pandas as pd
@@ -76,7 +75,7 @@ async def fetch_all(_session: ClientSession, plugins: Iterable):
     ])
 
 
-async def main() -> NoReturn:
+async def main() -> None:
     logger.setLevel(logging.DEBUG)
     logger.addHandler(
         logging.StreamHandler(sys.stdout)

@@ -96,7 +96,7 @@ output {
 
 class Node:
 
-    def __init__(self, node_id: int, name: str) -> NoReturn:
+    def __init__(self, node_id: int, name: str) -> None:
         self.id = node_id
         self.name = name
 
@@ -109,7 +109,7 @@ class Node:
 
 class Edge:
 
-    def __init__(self, from_node: Node, to_node: Node) -> NoReturn:
+    def __init__(self, from_node: Node, to_node: Node) -> None:
         self.from_node = from_node
         self.to_node = to_node
 
@@ -122,7 +122,7 @@ class Edge:
 
 class Graph:
 
-    def __init__(self) -> NoReturn:
+    def __init__(self) -> None:
         self.nodes: list[Node] = []
         self.edges: list[Edge] = []
 
@@ -144,7 +144,7 @@ class Graph:
         return nodes + edges
 
 
-def recurse_keys(graph: Graph, element: list, parent_node: Node = None) -> NoReturn:
+def recurse_keys(graph: Graph, element: list, parent_node: Node = None) -> None:
     if len(element) == 2 and isinstance(element[0], str) and isinstance(element[1], list):
         node = graph.create_node(element[0])
 
@@ -161,7 +161,7 @@ def recurse_keys(graph: Graph, element: list, parent_node: Node = None) -> NoRet
 
 class Dashboard:
 
-    def __init__(self, graph: Graph) -> NoReturn:
+    def __init__(self, graph: Graph) -> None:
         self.graph = graph
 
     def create(self) -> Dash:
@@ -206,7 +206,7 @@ class Dashboard:
         return dash
 
 
-def main() -> NoReturn:
+def main() -> None:
     pipeline = Pipeline(data)
     graph = Graph()
     recurse_keys(graph, pipeline.parse())
